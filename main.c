@@ -34,7 +34,7 @@ int main(int argc, char *argv[]) {
 
 
 	// write to file default values
-	if((cfptr = fopen("x.dat", "wb")) == NULL){
+	if((cfptr = fopen("credit.dat", "wb")) == NULL){
 		printf("nope");
 	}else{
 		int count = 1;
@@ -72,32 +72,6 @@ int main(int argc, char *argv[]) {
 	
 	
 	readFile();
-	
-
-	
-	// update
-/*	if((cfptr = fopen("credit.dat", "rb+")) == NULL){
-		printf("nope");
-	}else{
-		int oldY = 0; //start value to be different from y;
-		
-		rewind(cfptr);
-
-		while(! feof(cfptr)){
-			fread(&element, sizeof(struct elementData), 1, cfptr);
-			
-			if(element.x == 'B' && element.y == 5){
-				fseek(cfptr, (element.id - 1) * sizeof(struct elementData), SEEK_SET);
-				element.value = 'k';
-				//printf("%c", element.value);
-				fwrite(&element, sizeof(struct elementData), 1, cfptr);
-				//printf("%d", element.id);
-				break;
-			}
-		}
-		
-		fclose(cfptr);
-	}*/
 	
 	while(1 == 1){
 		updateFile();
@@ -194,27 +168,115 @@ void updateFile(){
 									if(elementL.value == turnChecker){
 									    	
 												
+										if(y > b){
+											midY = y-1;
+										}else{
+											midY = b-1;
+										}
 										rewind(cfptr);
-										midY = y-1;
 										// find element at mid
 										while(! feof(cfptr)){
 											fread(&elementM, sizeof(struct elementData), 1, cfptr);
 											
 											// to stop the loop, nad insert new values of location and destination
-											if(midY == b){
-												break;
-											}
-									
-											if(elementM.x == x  && (elementM.value == anti_turn || elementM.value == anti_turnChecker)){
-												elementIds[index] = elementM.id;
-												elementXs[index] = elementM.x;
-												elementYs[index] = elementM.y;
-												elementValues[index] = elementM.value;
-												index++;
-												
-												midY--;
+											if(y > b){
+												if(midY == b){
+													break;
+												};
+											}else{
+												if(midY == y){
+													break;
+												}
 											}
 											
+											if(elementM.x == x  && elementM.y == midY ){
+												rewind(cfptr);
+												
+												if(elementM.value == anti_turn || elementM.value == anti_turnChecker){
+													//rewind(cfptr);
+													elementIds[index] = elementM.id;
+													elementXs[index] = elementM.x;
+													elementYs[index] = elementM.y;
+													elementValues[index] = elementM.value;
+													index++;
+												}
+												
+												midY--;
+											}	
+
+										}
+										
+									}else{
+										printf("\nWrong player tried to play, please wait till -> %c <- player make its move\n", turn);	
+									}
+									break;
+								}
+							}
+						     break;
+						}
+					}	
+				}else if(y == b){
+					// user moved in horizontal
+					
+					rewind(cfptr);
+					while(! feof(cfptr)){
+						fread(&elementD, sizeof(struct elementData), 1, cfptr);
+						
+						// find id of element that at coordinate ab (destination)
+						if(elementD.x == a && elementD.y == y && elementD.value == '-'){
+							elementD.value = turnChecker;
+							//printf("destination id = %d \n", elementD.id);
+								
+							rewind(cfptr);
+							while(! feof(cfptr)){
+								fread(&elementL, sizeof(struct elementData), 1, cfptr);
+
+								// find id of element that at coordinate xy  (location)
+								if(elementL.x == x && elementL.y == y){
+									
+									if(elementL.value == turnChecker){
+									    	
+												
+										rewind(cfptr);
+										if(indexOfX > indexOfA){
+											midX = indexOfX - 1;
+										}else{
+											midX = indexOfA - 1;	
+										}
+										
+										rewind(cfptr);
+										// find element at mid
+										while(! feof(cfptr)){
+											fread(&elementM, sizeof(struct elementData), 1, cfptr);
+											//printf("elementM.X = %d", getIndexOfChar(elementM.x));
+											
+											// to stop the loop, nad insert new values of location and destination
+											if(indexOfX > indexOfA){
+												if(midX == indexOfA){;
+													break;
+												}
+											}else{
+												if(midX == indexOfX){
+													break;
+												}
+											}
+											
+											if(elementM.y == y  && getIndexOfChar(elementM.x) == midX){
+												rewind(cfptr);
+												
+												if(elementM.value == anti_turn || elementM.value == anti_turnChecker){
+													//printf("midX = %d", midX);
+													//rewind(cfptr);
+													elementIds[index] = elementM.id;
+													elementXs[index] = elementM.x;
+													elementYs[index] = elementM.y;
+													elementValues[index] = elementM.value;
+													index++;	
+												}
+												
+												midX--;	
+											}											
+
 										}
 										
 									}else{
@@ -226,11 +288,12 @@ void updateFile(){
 						     break;
 						}
 					}
-					
-					
+				
+				}
+				
+				    int success = 0;
+				
 					// UPDATE VALUES
-					
-					
 					for(int i=0; i < 6; i++){
 						rewind(cfptr);
 						// check if it is not default value
@@ -240,29 +303,26 @@ void updateFile(){
 							struct elementData newM = {elementIds[i], elementXs[i], elementYs[i], '-'};
 							
 							fwrite(&newM, sizeof(struct elementData), 1, cfptr);
+							
+							success = 1;
 						}
 					}
 					
-					rewind(cfptr);
-					// write new value of old location
-					fseek(cfptr, (elementL.id - 1) * sizeof(struct elementData), SEEK_SET);
-					elementL.value = '-';
-					//struct elementData oldL = {elementL.id,  elementL.x, elementL.y, '-'};
-					fwrite(&elementL, sizeof(struct elementData), 1, cfptr);
-											
-					rewind(cfptr);
-					// write new value of new location (it was destination before)
-					fseek(cfptr, (elementD.id - 1) * sizeof(struct elementData), SEEK_SET);
-					//struct elementData newL = {elementD.id,  elementD.x, elementD.y, 'q'};
-					fwrite(&elementD, sizeof(struct elementData), 1, cfptr);
-					
-				}
-						
-				// user moved in horizontal
-				if(y == b){
-					
-				}
-						
+					if(success == 1){
+						rewind(cfptr);
+						// write new value of old location
+						fseek(cfptr, (elementL.id - 1) * sizeof(struct elementData), SEEK_SET);
+						elementL.value = '-';
+						//struct elementData oldL = {elementL.id,  elementL.x, elementL.y, '-'};
+						fwrite(&elementL, sizeof(struct elementData), 1, cfptr);
+												
+						rewind(cfptr);
+						// write new value of new location (it was destination before)
+						fseek(cfptr, (elementD.id - 1) * sizeof(struct elementData), SEEK_SET);
+						//struct elementData newL = {elementD.id,  elementD.x, elementD.y, 'q'};
+						fwrite(&elementD, sizeof(struct elementData), 1, cfptr);	
+					}
+		
 			}
 			fclose(cfptr);
 		// STANDART PLAYING WITH 2 UNIT AWAY MOVING
