@@ -27,9 +27,7 @@ void getTurn();
 int main(int argc, char *argv[]) {
 	
 	FILE *cfptr; 
-	
-	getTurn();
-	
+		
 	struct elementData element = {0, 'A', 1, 's'};
 	struct elementData element2 = {1, 'H', 1, 'b'};
 
@@ -79,7 +77,12 @@ int main(int argc, char *argv[]) {
 		
 		}else if(option == 1){
 			
-			getTurn();
+
+			 turn = 'w';
+			 anti_turn = 'b';
+			 turnChecker = 'x';
+			 anti_turnChecker = 'y';
+			 elementTurn.value = 'w';
 			
 			if((logs = fopen("logs.txt", "a")) == NULL){
 				printf("\nLogs could not opened.Please check 'logs' file in the directory\n");
@@ -173,7 +176,7 @@ int getIndexOfChar(char x){
 void updateFile(char x, char a, int y, int b){
 	
 	int isLegal = 0;
-	int stopChecker = 0;
+	int goChecker = 0;
 	
 	//char x,a;
 	char enterKeeper;
@@ -272,8 +275,10 @@ void updateFile(char x, char a, int y, int b){
 											if(elementM.x == x  && elementM.y == midY ){
 												rewind(cfptr);
 												
-												if(elementM.value == turn || elementM.value == turnChecker){
-													stopChecker = 1;
+												if(/*elementM.value == turn || elementM.value == turnChecker*/ index == 1){
+													goChecker = 1;
+												}else{
+													goChecker = 0;
 												}
 												
 												if(elementM.value == anti_turn || elementM.value == anti_turnChecker){
@@ -348,8 +353,10 @@ void updateFile(char x, char a, int y, int b){
 											if(elementM.y == y  && getIndexOfChar(elementM.x) == midX){
 												rewind(cfptr);
 												
-												if(elementM.value == turn || elementM.value == turnChecker){
-													stopChecker = 1;
+												if(/*elementM.value == turn || elementM.value == turnChecker ||*/ index == 1){
+													goChecker = 1;
+												}else{
+													goChecker = 0;
 												}
 												
 												if(elementM.value == anti_turn || elementM.value == anti_turnChecker){
@@ -381,27 +388,28 @@ void updateFile(char x, char a, int y, int b){
 				
 				    
 				    
-				    if(stopChecker == 0){
+				    if(goChecker == 1){
 				    	int success = 0;
-				    	
+				    	int counter = 0;
 						// UPDATE VALUES
 						for(int i=0; i < 6; i++){
 							rewind(cfptr);
 							
 							// check if it is not default value
 							if(elementIds[i] != 10){ 
-								fseek(cfptr, (elementIds[i] - 1) * sizeof(struct elementData), SEEK_SET);
-							//	printf(" %d %c %d %c \n", elementIds[i], elementXs[i], elementYs[i], elementValues[i]);
-								struct elementData newM = {elementIds[i], elementXs[i], elementYs[i], '-'};
-								
-								fwrite(&newM, sizeof(struct elementData), 1, cfptr);
-								
-								success = 1;
-								isLegal = 1;
+								counter++;
 							}
 						}
 						
-						if(success == 1){
+						if(counter == 1){
+							success = 1;
+							fseek(cfptr, (elementIds[0] - 1) * sizeof(struct elementData), SEEK_SET);
+							//	printf(" %d %c %d %c \n", elementIds[i], elementXs[i], elementYs[i], elementValues[i]);
+							struct elementData newM = {elementIds[0], elementXs[0], elementYs[0], '-'};
+							
+							fwrite(&newM, sizeof(struct elementData), 1, cfptr);
+							
+							isLegal = 1;
 							rewind(cfptr);
 							// write new value of old location
 							fseek(cfptr, (elementL.id - 1) * sizeof(struct elementData), SEEK_SET);
@@ -413,8 +421,35 @@ void updateFile(char x, char a, int y, int b){
 							// write new value of new location (it was destination before)
 							fseek(cfptr, (elementD.id - 1) * sizeof(struct elementData), SEEK_SET);
 							//struct elementData newL = {elementD.id,  elementD.x, elementD.y, 'q'};
-							fwrite(&elementD, sizeof(struct elementData), 1, cfptr);	
+							fwrite(&elementD, sizeof(struct elementData), 1, cfptr);
+							
+							rewind(cfptr);
+							// set turn and write new turn value to file also set anti-turn to old value of turn
+							anti_turn = turn;
+							anti_turnChecker = turnChecker;
+									
+							turn = turn == 'w' ? 'b' : 'w'; 
+							turnChecker = turnChecker == 'x' ? 'y' : 'x';
+							fseek(cfptr, (elementTurn.id - 1) * sizeof(struct elementData), SEEK_SET);
+							elementTurn.value = turn;
+								
+							fwrite(&elementTurn, sizeof(struct elementData), 1, cfptr);
+							
 						}
+											
+						/*if(success == 0){
+							rewind(cfptr);
+							// set turn and write new turn value to file also set anti-turn to old value of turn
+							anti_turn = turn;
+							anti_turnChecker = turnChecker;
+									
+							turn = turn == 'w' ? 'b' : 'w'; 
+							turnChecker = turnChecker == 'x' ? 'y' : 'x';
+							fseek(cfptr, (elementTurn.id - 1) * sizeof(struct elementData), SEEK_SET);
+							elementTurn.value = turn;
+								
+							fwrite(&elementTurn, sizeof(struct elementData), 1, cfptr);
+						}*/
 					}
 				
 
@@ -636,9 +671,14 @@ void updateFile(char x, char a, int y, int b){
 							fread(&element2, sizeof(struct elementData), 1, cfptr);
 							
 							// find id of element that at coordinate xy  (location)
-							if(element2.x == x && element2.y == y){
+							if(element2.x == x && element2.y == y ){
 								
 								if(element2.value == turn || element2.value == turnChecker){
+									
+									if((b <= y && element2.value == 'w') || (y <= b && element2.value == 'b')){
+										break;
+									}
+									
 									// change value of destiation if player using checker
 									element.value = element2.value == turnChecker ? turnChecker : turn;
 									
@@ -748,7 +788,7 @@ void updateFile(char x, char a, int y, int b){
 void getTurn(){
 	
 	FILE *cfptr;
-	struct elementData element = {0, 'A', 1, 'b'}; // default values
+	struct elementData element = {0, 'A', 1, 'w'}; // default values
 	
 	if((cfptr = fopen("element.dat", "rb")) == NULL){
 		printf("\nFile could not open\n");
@@ -780,7 +820,7 @@ void readFile(){
 	
 	FILE *cfptr;
 	
-	struct elementData element = {0, 'A', 2, 'b'};
+	struct elementData element = {0, 'A', 2, 'w'};
 	
 	if((cfptr = fopen("element.dat", "rb")) == NULL){
 		printf("\nFile could no open\n");

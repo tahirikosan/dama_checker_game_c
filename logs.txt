@@ -87,3 +87,61 @@ b:H2H3
 b:H4H1
 w:H1H2
 End Games
+New Game Start
+b:C3C4
+w:C6C5
+w:C4C6
+w:C6C8
+b:C8C7
+w:H6H5
+b:G3G4
+w:G6G5
+b:C7C6
+w:E6E5
+b:A3A4
+End Games
+Continue to old game
+w:H5H4
+w:H3H5
+b:H5H6
+End Games
+New Game Start
+b:C3C4
+w:C6C5
+w:C4C6
+w:C6C8
+b:C8C7
+End Games
+Continue to old game
+w:H6H5
+b:H3H4
+b:H5H3
+b:H3H1
+w:H1H2
+b:C7C6
+w:E6E5
+b:A3A4
+w:F6F5
+w:C6E6
+w:E6E4
+b:E4F4
+w:B6B5
+b:D3D4
+w:B7B6
+b:A4A5
+w:H7H6
+w:F4F6
+b:D4D5
+b:G6E6
+w:E6D6
+b:F3F4
+w:H2H3
+b:E3E4
+w:H3D3
+End Games
+Continue to old game
+w:C6C5
+End Games
+Continue to old game
+w:C4C6
+End Games
